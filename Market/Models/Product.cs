@@ -6,7 +6,7 @@ namespace Market.Models
     {
         public Guid? CategoryId { get; set; }
         public Guid? StoragetId { get; set; }
-        public uint? Count { get; set; }
+        public ulong? Count { get; set; }
         public decimal? Price { get; set; }
         public virtual List<Storage> Storages { get; set; } = new List<Storage>();
     }

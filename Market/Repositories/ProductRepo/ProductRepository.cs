@@ -41,7 +41,7 @@ namespace Market.Repositories.ProductRepo
             {
                 Product? newProduct = mapper.Map<Product>(productDto);
                 await context.Set<Product>().AddAsync(newProduct);
-                context.SaveChanges();
+                await context.SaveChangesAsync();
                 transaction.Commit();
                 return newProduct;
             }

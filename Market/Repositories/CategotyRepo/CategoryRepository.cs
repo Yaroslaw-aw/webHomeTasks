@@ -27,7 +27,7 @@ namespace Market.Repositories.CategotyRepo
             {
                 Category newCategory = mapper.Map<Category>(categoryDto);
                 await context.AddAsync(newCategory);
-                context.SaveChanges();
+                await context.SaveChangesAsync();
                 transaction.Commit();
                 return newCategory;
             }
@@ -64,7 +64,5 @@ namespace Market.Repositories.CategotyRepo
             }
             return null;
         }
-
-
     }
 }

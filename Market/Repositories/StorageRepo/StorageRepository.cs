@@ -41,7 +41,7 @@ namespace Market.Repositories.StorageRepo
             {
                 Storage? newStorage = mapper.Map<Storage>(StorageDto);
                 await context.Set<Storage>().AddAsync(newStorage);
-                context.SaveChanges();
+                await context.SaveChangesAsync();
                 transaction.Commit();
                 return newStorage;
             }
