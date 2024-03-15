@@ -17,6 +17,10 @@ namespace Market.Repositories.StorageRepo
             this.mapper = mapper;
         }
 
+        /// <summary>
+        /// Получение списка складов
+        /// </summary>
+        /// <returns></returns>
         public async Task<IEnumerable<StorageDto>> GetStoragesAsync()
         {
             await context.SaveChangesAsync();
@@ -26,6 +30,11 @@ namespace Market.Repositories.StorageRepo
             }
         }
 
+        /// <summary>
+        /// Добавление склада
+        /// </summary>
+        /// <param name="StorageDto"></param>
+        /// <returns></returns>
         public async Task<Storage?> AddStorageAsync([FromQuery] StorageDto StorageDto)
         {
             using (IDbContextTransaction transaction = context.Database.BeginTransaction())
@@ -38,6 +47,11 @@ namespace Market.Repositories.StorageRepo
             }
         }
 
+        /// <summary>
+        /// Удаление склада
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         public async Task<Storage?> DeleteStorageAsync(Guid? id)
         {
             using (IDbContextTransaction transaction = context.Database.BeginTransaction())

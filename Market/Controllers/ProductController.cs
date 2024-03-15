@@ -16,6 +16,10 @@ namespace Market.Controllers
             this.repository = repository;
         }
 
+        /// <summary>
+        /// Получение списка продуктов
+        /// </summary>
+        /// <returns></returns>
         [HttpGet(template: "GetProducts")]
         public async Task<ActionResult<IEnumerable<ProductDto>?>> GetProducts()
         {
@@ -23,6 +27,11 @@ namespace Market.Controllers
             return AcceptedAtAction("GetProducts", products);
         }
 
+        /// <summary>
+        /// Добавление продукта
+        /// </summary>
+        /// <param name="productDto"></param>
+        /// <returns></returns>
         [HttpPost(template: "AddProduct")]
         public async Task<ActionResult<Product?>> AddProduct([FromQuery] ProductDto productDto)
         {
@@ -30,25 +39,16 @@ namespace Market.Controllers
             return CreatedAtAction("AddProduct", newProductId);
         }
 
-        //[HttpPut(template: "UpdateProduct")]
-        //public async Task<ActionResult<Guid?>> UpdateProduct(ProductDto productDto)
-        //{
-        //    Product? newProductId = await repository.UpdateProductAsync(productDto);
-        //    return AcceptedAtAction("UpdateProduct", newProductId?.Id);
-        //}
-
+        /// <summary>
+        /// Удаление продукта по Guid
+        /// </summary>
+        /// <param name="productId"></param>
+        /// <returns></returns>
         [HttpDelete(template: "DeleteProduct")]
         public async Task<ActionResult<Guid?>> DeleteProduct(Guid? productId)
         {
             Product? deletetProduct = await repository.DeleteProductAsync(productId);
             return AcceptedAtAction(nameof(DeleteProduct), deletetProduct?.Id);
         }
-
-        //[HttpPost(template: "AddProduct")]
-        //public async Task<ActionResult<Guid?>> AddProduct([FromQuery] string? name, string? description, decimal? price, CategoryDto categoryDto)
-        //{
-        //    Guid? newProductId = await repository.AddProductAsync(name, description, price, categoryDto);
-        //    return CreatedAtAction("AddProduct", newProductId);
-        //}
     }
 }

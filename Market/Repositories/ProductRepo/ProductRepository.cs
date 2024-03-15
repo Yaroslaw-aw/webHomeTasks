@@ -30,6 +30,11 @@ namespace Market.Repositories.ProductRepo
             }
         }
 
+        /// <summary>
+        /// Добавление продукта
+        /// </summary>
+        /// <param name="productDto"></param>
+        /// <returns></returns>
         public async Task<Product?> AddProductAsync([FromQuery] ProductDto productDto)
         {
             using (IDbContextTransaction transaction = context.Database.BeginTransaction())
@@ -42,6 +47,11 @@ namespace Market.Repositories.ProductRepo
             }
         }
 
+        /// <summary>
+        /// Удаление продукта
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         public async Task<Product?> DeleteProductAsync(Guid? id)
         {
             using (IDbContextTransaction transaction = context.Database.BeginTransaction())

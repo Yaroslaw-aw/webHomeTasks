@@ -16,13 +16,22 @@ namespace Market.Controllers
             this.repository = repository;
         }
 
+        /// <summary>
+        /// Получение списка категорий
+        /// </summary>
+        /// <returns></returns>
         [HttpGet(template: "GetCategorys")]
         public async Task<ActionResult<IEnumerable<CategoryDto>?>> GetCategorys()
         {
-            IEnumerable<CategoryDto>? Categorys = await repository.GetCategoriesAsync();
-            return AcceptedAtAction("GetCategorys", Categorys);
+            IEnumerable<CategoryDto>? categories = await repository.GetCategoriesAsync();
+            return AcceptedAtAction("GetCategorys", categories);
         }
 
+        /// <summary>
+        /// Добавление категории по имени и описанию
+        /// </summary>
+        /// <param name="CategoryDto"></param>
+        /// <returns></returns>
         [HttpPost(template: "AddCategory")]
         public async Task<ActionResult<Guid?>> AddCategory([FromQuery] CategoryDto CategoryDto)
         {
@@ -30,13 +39,16 @@ namespace Market.Controllers
             return CreatedAtAction("AddCategory", newCategory?.Id);
         }
 
-
+        /// <summary>
+        /// Удаление категории по Guid
+        /// </summary>
+        /// <param name="CategoryId"></param>
+        /// <returns></returns>
         [HttpDelete(template: "DeleteCategory")]
         public async Task<ActionResult<Guid?>> DeleteCategory(Guid? CategoryId)
         {
-            Category? deletetCategory = await repository.DeleteCategoryAsync(CategoryId);
-            return AcceptedAtAction(nameof(DeleteCategory), deletetCategory?.Id);
+            Category? deletedCategory = await repository.DeleteCategoryAsync(CategoryId);
+            return AcceptedAtAction(nameof(DeleteCategory), deletedCategory?.Id);
         }
     }
 }
-        //new { id = newCategory?.Id, name = newCategory?.Name, description = newCategory?.Description }

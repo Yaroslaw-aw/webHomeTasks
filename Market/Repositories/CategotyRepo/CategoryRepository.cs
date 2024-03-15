@@ -16,6 +16,11 @@ namespace Market.Repositories.CategotyRepo
             this.mapper = mapper;
         }
 
+        /// <summary>
+        /// Добавление категории
+        /// </summary>
+        /// <param name="categoryDto"></param>
+        /// <returns></returns>
         public async Task<Category?> AddCategoryAsync(CategoryDto categoryDto)
         {
             using (IDbContextTransaction transaction = context.Database.BeginTransaction())
@@ -28,6 +33,10 @@ namespace Market.Repositories.CategotyRepo
             }
         }
 
+        /// <summary>
+        /// Получение категорий
+        /// </summary>
+        /// <returns></returns>
         public async Task<IEnumerable<CategoryDto>> GetCategoriesAsync()
         {
             await context.SaveChangesAsync();
@@ -35,6 +44,11 @@ namespace Market.Repositories.CategotyRepo
                 return context.Categories.Select(mapper.Map<CategoryDto>).ToList();
         }
 
+        /// <summary>
+        /// Удаление категории
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         public async Task<Category?> DeleteCategoryAsync(Guid? id)
         {
             using (IDbContextTransaction transaction = context.Database.BeginTransaction())

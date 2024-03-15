@@ -13,6 +13,10 @@ namespace Market.Controllers
             this.repository = repository;
         }
 
+        /// <summary>
+        /// Получение списка категорий
+        /// </summary>
+        /// <returns></returns>
         [HttpGet(template: "GetStorages")]
         public async Task<ActionResult<IEnumerable<StorageDto>?>> GetStorages()
         {
@@ -20,6 +24,11 @@ namespace Market.Controllers
             return AcceptedAtAction("GetStorages", Storages);
         }
 
+        /// <summary>
+        /// Добавление склада по названию и описанию
+        /// </summary>
+        /// <param name="StorageDto"></param>
+        /// <returns></returns>
         [HttpPost(template: "AddStorage")]
         public async Task<ActionResult<Storage?>> AddStorage([FromQuery] StorageDto StorageDto)
         {
@@ -27,6 +36,11 @@ namespace Market.Controllers
             return CreatedAtAction("AddStorage", newStorage);
         }
 
+        /// <summary>
+        /// Удаление склада по Guid
+        /// </summary>
+        /// <param name="StorageId"></param>
+        /// <returns></returns>
         [HttpDelete(template: "DeleteStorage")]
         public async Task<ActionResult<Guid?>> DeleteStorage(Guid? StorageId)
         {
