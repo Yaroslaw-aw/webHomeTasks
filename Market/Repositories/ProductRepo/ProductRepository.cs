@@ -42,7 +42,7 @@ namespace Market.Repositories.ProductRepo
                 Product? newProduct = mapper.Map<Product>(productDto);
                 await context.Set<Product>().AddAsync(newProduct);
                 await context.SaveChangesAsync();
-                transaction.Commit();
+                await transaction.CommitAsync();
                 return newProduct;
             }
         }
@@ -61,7 +61,7 @@ namespace Market.Repositories.ProductRepo
                 {
                     context.Products.Remove(deletedProduct);
                     await context.SaveChangesAsync();
-                    transaction.Commit();
+                    await transaction.CommitAsync();
                     return deletedProduct;
                 }                
             }

@@ -8,6 +8,7 @@ namespace Market.Models
         public Guid? StoragetId { get; set; }
         public ulong? Count { get; set; }
         public decimal? Price { get; set; }
+        public virtual List<Category> Categories { get; set; } = new List<Category>();
         public virtual List<Storage> Storages { get; set; } = new List<Storage>();
     }
 }

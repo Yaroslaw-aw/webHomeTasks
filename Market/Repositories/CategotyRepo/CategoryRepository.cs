@@ -28,7 +28,7 @@ namespace Market.Repositories.CategotyRepo
                 Category newCategory = mapper.Map<Category>(categoryDto);
                 await context.AddAsync(newCategory);
                 await context.SaveChangesAsync();
-                transaction.Commit();
+                await transaction.CommitAsync();
                 return newCategory;
             }
         }
@@ -58,7 +58,7 @@ namespace Market.Repositories.CategotyRepo
                 {
                     context.Categories.Remove(deletedCategory);
                     await context.SaveChangesAsync();
-                    transaction.Commit();
+                    await transaction.CommitAsync();
                     return deletedCategory;
                 }
             }

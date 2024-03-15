@@ -42,7 +42,7 @@ namespace Market.Repositories.StorageRepo
                 Storage? newStorage = mapper.Map<Storage>(StorageDto);
                 await context.Set<Storage>().AddAsync(newStorage);
                 await context.SaveChangesAsync();
-                transaction.Commit();
+                await transaction.CommitAsync();
                 return newStorage;
             }
         }
@@ -61,7 +61,7 @@ namespace Market.Repositories.StorageRepo
                 {
                     context.Storages.Remove(deletedStorage);
                     await context.SaveChangesAsync();
-                    transaction.Commit();
+                    await transaction.CommitAsync();
                     return deletedStorage;
                 }
             }
