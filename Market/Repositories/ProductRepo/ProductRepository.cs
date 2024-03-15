@@ -24,7 +24,7 @@ namespace Market.Repositories.ProductRepo
         /// <returns></returns>
         public async Task<IEnumerable<ProductDto>> GetProductsAsync()
         {
-            List<ProductDto> products = await context.Set<ProductDto>().AsNoTracking().ToListAsync();
+            List<Product> products = await context.Set<Product>().AsNoTracking().ToListAsync();
             IEnumerable<ProductDto> result = mapper.Map<IEnumerable<ProductDto>>(products);
             return result;
         }
