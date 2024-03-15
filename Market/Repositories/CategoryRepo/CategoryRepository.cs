@@ -24,18 +24,33 @@ namespace Market.Repositories.CategoryRepo
         /// <returns></returns>
         public async Task<Guid?> AddCategoryAsync(CategoryDto categoryDto)
         {
-            using (IDbContextTransaction transaction = context.Database.BeginTransaction())
+            Guid? newCategoryId = null;
+            try
             {
-                Category newCategory = mapper.Map<Category>(categoryDto);
-                if (newCategory.Name != null || newCategory != null)
+                using (IDbContextTransaction transaction = context.Database.BeginTransaction())
                 {
-                    await context.AddAsync(newCategory);
-                    await context.SaveChangesAsync();
-                    await transaction.CommitAsync();
-                    return newCategory.Id;
+                    bool isCategoryExists = await context.Categories.AnyAsync(c => c.Name == categoryDto.Name);
+                    if (isCategoryExists == false)
+                    {
+                        Category newCategory = mapper.Map<Category>(categoryDto);
+
+                        await context.AddAsync(newCategory);
+                        await context.SaveChangesAsync();
+                        await transaction.CommitAsync();
+                        newCategoryId = newCategory.Id;
+                    }
+                    else
+                    {
+                        // выбросить какое-нибудь исключение, сообщающее о попытке добавить дубликат?
+                    }
                 }
             }
-            return null;
+            catch
+            (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+            return newCategoryId;
         }
 
         /// <summary>
@@ -48,7 +63,7 @@ namespace Market.Repositories.CategoryRepo
             IEnumerable<CategoryDto> result = mapper.Map<IEnumerable<CategoryDto>>(ategories);
             return result;
         }
-        
+
 
         /// <summary>
         /// Удаление категории
