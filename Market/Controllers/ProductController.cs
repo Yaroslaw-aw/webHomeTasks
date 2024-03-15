@@ -35,7 +35,7 @@ namespace Market.Controllers
         [HttpPost(template: "AddProduct")]
         public async Task<ActionResult<Product?>> AddProduct([FromQuery] ProductDto productDto)
         {
-            Product? newProductId = await repository.AddProductAsync(productDto);
+            Guid? newProductId = await repository.AddProductAsync(productDto);
             return CreatedAtAction("AddProduct", newProductId);
         }
 

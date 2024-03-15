@@ -34,7 +34,7 @@ namespace Market.Repositories.StorageRepo
         /// </summary>
         /// <param name="StorageDto"></param>
         /// <returns></returns>
-        public async Task<Storage?> AddStorageAsync([FromQuery] StorageDto StorageDto)
+        public async Task<Guid?> AddStorageAsync([FromQuery] StorageDto StorageDto)
         {
             using (IDbContextTransaction transaction = context.Database.BeginTransaction())
             {
@@ -42,7 +42,7 @@ namespace Market.Repositories.StorageRepo
                 await context.Set<Storage>().AddAsync(newStorage);
                 await context.SaveChangesAsync();
                 await transaction.CommitAsync();
-                return newStorage;
+                return newStorage.Id;
             }
         }
 

@@ -34,15 +34,52 @@ namespace Market.Repositories.ProductRepo
         /// </summary>
         /// <param name="productDto"></param>
         /// <returns></returns>
-        public async Task<Product?> AddProductAsync([FromQuery] ProductDto productDto)
+        public async Task<Guid?> AddProductAsync([FromQuery] ProductDto productDto)
         {
             using (IDbContextTransaction transaction = context.Database.BeginTransaction())
             {
-                Product? newProduct = mapper.Map<Product>(productDto);
-                await context.Set<Product>().AddAsync(newProduct);
-                await context.SaveChangesAsync();
-                await transaction.CommitAsync();
-                return newProduct;
+                try
+                {
+                    Product? newProduct = mapper.Map<Product>(productDto);
+                    context.Products.Add(newProduct);
+                    await context.SaveChangesAsync();
+
+                    var storageProduct = await context.ProductStorages.FirstOrDefaultAsync(sp => sp.ProductId == newProduct.Id);
+
+                    if (storageProduct != null)
+                    {
+                        storageProduct.Count += newProduct.Count;
+                        storageProduct.ProductId = newProduct.Id;
+                        storageProduct.CategoryId = newProduct.CategoryId;
+                    }
+                    else
+                    {
+                        storageProduct = new ProductStorage
+                        {
+                            ProductId = newProduct.Id,
+                            Count = newProduct.Count,
+                            CategoryId = newProduct.CategoryId,
+                            
+                        };
+                        context.ProductStorages.Add(storageProduct);
+                    }
+
+                    var categoryProduct = new CategoryProduct
+                    {
+                        CategoryId = newProduct.CategoryId,
+                        ProductId = newProduct.Id
+                    };
+                    context.CategoryProducts.Add(categoryProduct);
+
+
+                    await context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                    return newProduct.Id;
+                }
+                catch
+                { 
+                    await transaction.RollbackAsync(); throw;
+                }
             }
         }
 
@@ -66,5 +103,13 @@ namespace Market.Repositories.ProductRepo
             }
             return null;
         }
+
+        //public async Task<Guid?> UpdateProductAsync(ProductDto productDto)
+        //{
+        //    using (IDbContextTransaction tx = context.Database.BeginTransaction())
+        //    {
+        //        Product product = await context.Set<Product>().AsNoTracking().;
+        //    }
+        //}
     }
 }

@@ -9,6 +9,6 @@ namespace Market.DTO
         public string? Description { get; set; }
         public uint? Count { get; set; }
         public Guid? CategoryId { get; set; }
-        public Guid? StoragetId { get; set; }
+        public Guid? StorageId { get; set; }
     }
 }

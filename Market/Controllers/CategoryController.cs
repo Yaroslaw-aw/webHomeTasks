@@ -35,8 +35,8 @@ namespace Market.Controllers
         [HttpPost(template: "AddCategory")]
         public async Task<ActionResult<Guid?>> AddCategory([FromQuery] CategoryDto CategoryDto)
         {
-            Category? newCategory = await repository.AddCategoryAsync(CategoryDto);
-            return CreatedAtAction("AddCategory", newCategory?.Id);
+            Guid? newCategoryId = await repository.AddCategoryAsync(CategoryDto);
+            return CreatedAtAction("AddCategory", newCategoryId);
         }
 
         /// <summary>
@@ -47,8 +47,8 @@ namespace Market.Controllers
         [HttpDelete(template: "DeleteCategory")]
         public async Task<ActionResult<Guid?>> DeleteCategory(Guid? CategoryId)
         {
-            Category? deletedCategory = await repository.DeleteCategoryAsync(CategoryId);
-            return AcceptedAtAction(nameof(DeleteCategory), deletedCategory?.Id);
+            Guid? deletedCategoryId = await repository.DeleteCategoryAsync(CategoryId);
+            return AcceptedAtAction(nameof(DeleteCategory), deletedCategoryId);
         }
     }
 }

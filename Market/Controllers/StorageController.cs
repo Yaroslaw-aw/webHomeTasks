@@ -30,10 +30,10 @@ namespace Market.Controllers
         /// <param name="StorageDto"></param>
         /// <returns></returns>
         [HttpPost(template: "AddStorage")]
-        public async Task<ActionResult<Storage?>> AddStorage([FromQuery] StorageDto StorageDto)
+        public async Task<ActionResult<Guid?>> AddStorage([FromQuery] StorageDto StorageDto)
         {
-            Storage? newStorage = await repository.AddStorageAsync(StorageDto);
-            return CreatedAtAction("AddStorage", newStorage);
+            Guid? newStorageId = await repository.AddStorageAsync(StorageDto);
+            return CreatedAtAction("AddStorage", newStorageId);
         }
 
         /// <summary>

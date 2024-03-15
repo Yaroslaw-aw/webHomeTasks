@@ -22,7 +22,7 @@ namespace Market.Repositories.CategoryRepo
         /// </summary>
         /// <param name="categoryDto"></param>
         /// <returns></returns>
-        public async Task<Category?> AddCategoryAsync(CategoryDto categoryDto)
+        public async Task<Guid?> AddCategoryAsync(CategoryDto categoryDto)
         {
             using (IDbContextTransaction transaction = context.Database.BeginTransaction())
             {
@@ -30,7 +30,7 @@ namespace Market.Repositories.CategoryRepo
                 await context.AddAsync(newCategory);
                 await context.SaveChangesAsync();
                 await transaction.CommitAsync();
-                return newCategory;
+                return newCategory.Id;
             }
         }
 
@@ -51,7 +51,7 @@ namespace Market.Repositories.CategoryRepo
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public async Task<Category?> DeleteCategoryAsync(Guid? id)
+        public async Task<Guid?> DeleteCategoryAsync(Guid? id)
         {
             using (IDbContextTransaction transaction = context.Database.BeginTransaction())
             {
@@ -61,7 +61,7 @@ namespace Market.Repositories.CategoryRepo
                     context.Categories.Remove(deletedCategory);
                     await context.SaveChangesAsync();
                     await transaction.CommitAsync();
-                    return deletedCategory;
+                    return deletedCategory.Id;
                 }
             }
             return null;
