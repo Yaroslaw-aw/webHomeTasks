@@ -2,6 +2,7 @@
 using Market.DTO;
 using Market.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -65,6 +66,25 @@ namespace Market.Repositories.StorageRepo
                 }
             }
             return null;
+        }
+
+        public async Task<Guid?> UpdateStorageAsync(Guid storageId, StorageDto storageDto)
+        {
+            using (IDbContextTransaction tx = context.Database.BeginTransaction())
+            {
+                Storage? storage = await context.Storages.FirstOrDefaultAsync(s => s.Id == storageId);
+
+                if (storage != null)
+                {
+                    context.Storages.Remove(storage);
+                    storage = mapper.Map<Storage>(storageDto);
+                    context.Storages.Add(storage);
+                    await context.SaveChangesAsync();
+                    tx.Commit();
+                    return storageId;
+                }
+                return null;
+            }
         }
     }
 }

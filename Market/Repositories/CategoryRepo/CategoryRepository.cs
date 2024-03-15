@@ -66,5 +66,25 @@ namespace Market.Repositories.CategoryRepo
             }
             return null;
         }
+
+        public async Task<Guid?> UpdateCategotyAsync(Guid categoryId, CategoryDto categoryDto)
+        {
+            using (IDbContextTransaction tx = context.Database.BeginTransaction())
+            {
+                Category? category = await context.Categories.FirstOrDefaultAsync(p => p.Id == categoryId);
+
+                if (category != null)
+                {
+                    context.Categories.Remove(category);
+
+                    category = mapper.Map<Category>(categoryDto);
+                    context.Categories.Add(category);
+                    await context.SaveChangesAsync();
+                    tx.Commit();
+                    return categoryId;
+                }
+                return null;
+            }
+        }
     }
 }

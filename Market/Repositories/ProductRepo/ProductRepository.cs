@@ -104,12 +104,28 @@ namespace Market.Repositories.ProductRepo
             return null;
         }
 
-        //public async Task<Guid?> UpdateProductAsync(ProductDto productDto)
-        //{
-        //    using (IDbContextTransaction tx = context.Database.BeginTransaction())
-        //    {
-        //        Product product = await context.Set<Product>().AsNoTracking().;
-        //    }
-        //}
+        public async Task<Guid?> UpdateProductAsync(Guid? productId, ProductDto productDto)
+        {
+            using (IDbContextTransaction tx = context.Database.BeginTransaction())
+            {
+                Product? product = await context.Products.FirstOrDefaultAsync(p => p.Id == productId);
+
+                if (product != null)
+                {
+                    context.Products.Remove(product);
+
+                    product = mapper.Map<Product>(productDto);
+                    //product.Price = productDto.Price;
+                    //product.Description = productDto.Description;
+                    //product.StorageId = productDto.StorageId;
+                    //product.CategoryId = productDto.CategoryId;
+                    context.Products.Add(product);
+                    await context.SaveChangesAsync();
+                    tx.Commit();
+                    return productId;
+                }
+                return null;
+            }
+        }
     }
 }

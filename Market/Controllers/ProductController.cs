@@ -50,5 +50,12 @@ namespace Market.Controllers
             Product? deletetProduct = await repository.DeleteProductAsync(productId);
             return AcceptedAtAction(nameof(DeleteProduct), deletetProduct?.Id);
         }
+
+        [HttpPut(template: "UpdateProduct")]
+        public async Task<ActionResult<Guid>> UpdateProduct([FromQuery]Guid? productId, ProductDto productDto)
+        {
+            Guid? productid = await repository.UpdateProductAsync(productId, productDto);
+            return AcceptedAtAction(nameof(UpdateProduct), productid);
+        }
     }
 }

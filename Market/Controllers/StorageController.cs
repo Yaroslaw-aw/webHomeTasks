@@ -27,25 +27,32 @@ namespace Market.Controllers
         /// <summary>
         /// Добавление склада по названию и описанию
         /// </summary>
-        /// <param name="StorageDto"></param>
+        /// <param name="storageDto"></param>
         /// <returns></returns>
         [HttpPost(template: "AddStorage")]
-        public async Task<ActionResult<Guid?>> AddStorage([FromQuery] StorageDto StorageDto)
+        public async Task<ActionResult<Guid?>> AddStorage([FromQuery] StorageDto storageDto)
         {
-            Guid? newStorageId = await repository.AddStorageAsync(StorageDto);
+            Guid? newStorageId = await repository.AddStorageAsync(storageDto);
             return CreatedAtAction("AddStorage", newStorageId);
         }
 
         /// <summary>
         /// Удаление склада по Guid
         /// </summary>
-        /// <param name="StorageId"></param>
+        /// <param name="storageId"></param>
         /// <returns></returns>
         [HttpDelete(template: "DeleteStorage")]
-        public async Task<ActionResult<Guid?>> DeleteStorage(Guid? StorageId)
+        public async Task<ActionResult<Guid?>> DeleteStorage(Guid? storageId)
         {
-            Storage? deletetStorage = await repository.DeleteStorageAsync(StorageId);
+            Storage? deletetStorage = await repository.DeleteStorageAsync(storageId);
             return AcceptedAtAction(nameof(DeleteStorage), deletetStorage?.Id);
+        }
+
+        [HttpPut(template: "UpdateStorage")]
+        public async Task<ActionResult<Guid?>> UpdateStorage([FromQuery] Guid storageId, StorageDto storageDto)
+        {
+            Guid? storageid = await repository.UpdateStorageAsync(storageId, storageDto);
+            return AcceptedAtAction(nameof(UpdateStorage), storageid);
         }
     }
 }

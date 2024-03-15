@@ -50,5 +50,7 @@ namespace Market.Controllers
             Guid? deletedCategoryId = await repository.DeleteCategoryAsync(CategoryId);
             return AcceptedAtAction(nameof(DeleteCategory), deletedCategoryId);
         }
+
+        
     }
 }
