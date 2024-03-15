@@ -1,6 +1,6 @@
 ﻿using Market.DTO;
 using Market.Models;
-using Market.Repositories.CategotyRepo;
+using Market.Repositories.CategoryRepo;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Market.Controllers

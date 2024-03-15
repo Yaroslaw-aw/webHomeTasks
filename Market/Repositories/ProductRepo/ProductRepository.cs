@@ -2,6 +2,7 @@
 using Market.DTO;
 using Market.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Market.Repositories.ProductRepo
@@ -23,11 +24,9 @@ namespace Market.Repositories.ProductRepo
         /// <returns></returns>
         public async Task<IEnumerable<ProductDto>> GetProductsAsync()
         {
-            await context.SaveChangesAsync();
-            using (context)
-            {
-                return context.Products.Select(mapper.Map<ProductDto>).ToList();
-            }
+            List<ProductDto> products = await context.Set<ProductDto>().AsNoTracking().ToListAsync();
+            IEnumerable<ProductDto> result = mapper.Map<IEnumerable<ProductDto>>(products);
+            return result;
         }
 
         /// <summary>
@@ -63,7 +62,7 @@ namespace Market.Repositories.ProductRepo
                     await context.SaveChangesAsync();
                     await transaction.CommitAsync();
                     return deletedProduct;
-                }                
+                }
             }
             return null;
         }

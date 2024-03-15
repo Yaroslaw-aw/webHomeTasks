@@ -1,7 +1,7 @@
 ﻿using Market.DTO;
 using Market.Models;
 
-namespace Market.Repositories.CategotyRepo
+namespace Market.Repositories.CategoryRepo
 {
     public interface ICategoryRepository
     {

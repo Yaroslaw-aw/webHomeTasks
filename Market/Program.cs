@@ -1,6 +1,6 @@
 using Market.DTO.Mapping;
 using Market.Models;
-using Market.Repositories.CategotyRepo;
+using Market.Repositories.CategoryRepo;
 using Market.Repositories.ProductRepo;
 using Market.Repositories.StorageRepo;
 using Microsoft.EntityFrameworkCore;

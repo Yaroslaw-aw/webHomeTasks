@@ -2,6 +2,7 @@
 using Market.DTO;
 using Market.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Market.Repositories.StorageRepo
@@ -23,11 +24,9 @@ namespace Market.Repositories.StorageRepo
         /// <returns></returns>
         public async Task<IEnumerable<StorageDto>> GetStoragesAsync()
         {
-            await context.SaveChangesAsync();
-            using (context)
-            {
-                return context.Storages.Select(mapper.Map<StorageDto>).ToList();
-            }
+            List<Storage> storages = await context.Set<Storage>().AsNoTracking().ToListAsync();
+            IEnumerable<StorageDto> result = mapper.Map<IEnumerable<StorageDto>>(storages);
+            return result;
         }
 
         /// <summary>

@@ -1,9 +1,10 @@
 ﻿using AutoMapper;
 using Market.DTO;
 using Market.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
-namespace Market.Repositories.CategotyRepo
+namespace Market.Repositories.CategoryRepo
 {
     public class CategoryRepository : ICategoryRepository
     {
@@ -39,10 +40,11 @@ namespace Market.Repositories.CategotyRepo
         /// <returns></returns>
         public async Task<IEnumerable<CategoryDto>> GetCategoriesAsync()
         {
-            await context.SaveChangesAsync();
-            using (context)
-                return context.Categories.Select(mapper.Map<CategoryDto>).ToList();
+            List<Category> ategories = await context.Set<Category>().AsNoTracking().ToListAsync();
+            IEnumerable<CategoryDto> result = mapper.Map<IEnumerable<CategoryDto>>(ategories);
+            return result;
         }
+        
 
         /// <summary>
         /// Удаление категории
