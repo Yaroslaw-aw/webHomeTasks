@@ -36,96 +36,120 @@ namespace Market.Repositories.ProductRepo
         /// <returns></returns>
         public async Task<Guid?> AddProductAsync([FromQuery] ProductDto productDto)
         {
-            using (IDbContextTransaction transaction = context.Database.BeginTransaction())
+            Guid? newProductId = null;
+            try
             {
-                try
+                bool productExists = await context.Products.AnyAsync(p => p.Name == productDto.Name);
+
+                using (IDbContextTransaction transaction = context.Database.BeginTransaction())
                 {
-                    Product? newProduct = mapper.Map<Product>(productDto);
-                    context.Products.Add(newProduct);
-                    await context.SaveChangesAsync();
-
-                    ProductStorage? storageProduct = await context.ProductStorages.FirstOrDefaultAsync(sp => sp.ProductId == newProduct.Id);
-
-                    if (storageProduct != null)
+                    Product? newProduct = null;
+                    if (productExists == false)
                     {
-                        storageProduct.Count += newProduct.Count;
+                        newProduct = mapper.Map<Product>(productDto);
+                        context.Products.Add(newProduct);
+                        await context.SaveChangesAsync();
+
+                        ProductStorage? storageProduct = mapper.Map<ProductStorage>(newProduct);
+                        context.ProductStorages.Add(storageProduct);
+                        await context.SaveChangesAsync();
+
+                        CategoryProduct? categoryProduct = mapper.Map<CategoryProduct>(newProduct);
+                        context.CategoryProducts.Add(categoryProduct);
                     }
                     else
                     {
-                        storageProduct = mapper.Map<ProductStorage>(newProduct);
-                        context.ProductStorages.Add(storageProduct);                        
+                        ProductStorage? storageProduct = await context.ProductStorages
+                                                  .FirstOrDefaultAsync(sp => sp.Name == productDto.Name &&
+                                                                             sp.StorageId == productDto.StorageId &&
+                                                                             sp.Description == productDto.Description &&
+                                                                             sp.Price == productDto.Price);
+                        if (storageProduct != null)
+                        {
+                            storageProduct.Count += productDto.Count;
+                        }
+                        else
+                        {
+                            newProduct = await context.Products.FirstOrDefaultAsync(p => p.Name == productDto.Name);
+                            storageProduct = mapper.Map<ProductStorage>(newProduct);
+                            context.ProductStorages.Add(storageProduct);
+                        }
                     }
                     await context.SaveChangesAsync();
-
-                    CategoryProduct? categoryProduct = new CategoryProduct
-                    {
-                        CategoryId = newProduct.CategoryId,
-                        ProductId = newProduct.Id
-                    };
-                    context.CategoryProducts.Add(categoryProduct);
-
-                    await context.SaveChangesAsync();
                     await transaction.CommitAsync();
-                    return newProduct.Id;
-                }
-                catch
-                {
-                    await transaction.RollbackAsync(); throw;
+                    newProductId = newProduct?.Id;                    
                 }
             }
-        }
-
-        /// <summary>
-        /// Удаление продукта
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        public async Task<Product?> DeleteProductAsync(Guid? id)
-        {
-            using (IDbContextTransaction transaction = context.Database.BeginTransaction())
+            catch (DbUpdateException ex)
             {
-                Product? deletedProduct = context.Products.FirstOrDefault(p => p.Id == id);
-                if (deletedProduct != null)
+                // Обрабатываем ошибку сохранения в базе данных
+                throw new Exception("Failed to save product to database.", ex);
+            }
+            catch (Exception ex)
+            {
+                // Обрабатываем другие исключения
+                throw new Exception("An error occurred while adding the product.", ex);
+            }
+            return newProductId;
+        }
+    }
+    /*new CategoryProduct
+                 {
+                     CategoryId = productDto.CategoryId,
+                     ProductId = newProductId
+                 };*/
+
+    /// <summary>
+    /// Удаление продукта
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    public async Task<Product?> DeleteProductAsync(Guid? id)
+    {
+        using (IDbContextTransaction transaction = context.Database.BeginTransaction())
+        {
+            Product? deletedProduct = context.Products.FirstOrDefault(p => p.Id == id);
+            if (deletedProduct != null)
+            {
+                context.Products.Remove(deletedProduct);
+                await context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return deletedProduct;
+            }
+        }
+        return null;
+    }
+
+    public async Task<Guid?> UpdateProductAsync(Guid? productId, ProductDto productDto)
+    {
+        using (IDbContextTransaction tx = context.Database.BeginTransaction())
+        {
+            Product? product = await context.Products.FirstOrDefaultAsync(p => p.Id == productId);
+
+            if (product != null)
+            {
+                context.Products.Remove(product);
+
+                product = mapper.Map<Product>(productDto);
+                context.Products.Add(product);
+                await context.SaveChangesAsync();
+                ProductStorage? productStorage = context.ProductStorages.FirstOrDefault(ps => ps.ProductId == product.Id);
+                if (productStorage != null)
                 {
-                    context.Products.Remove(deletedProduct);
+                    context.ProductStorages.Remove(productStorage);
+                    productStorage = mapper.Map<ProductStorage>(productDto);
+                    //productStorage.Count = productDto.Count;
+                    //productStorage.Name = productDto.Name;
+                    //productStorage.Description = productDto.Description;
+                    context.ProductStorages.Add(productStorage);
                     await context.SaveChangesAsync();
-                    await transaction.CommitAsync();
-                    return deletedProduct;
                 }
+
+                tx.Commit();
+                return product.Id;
             }
             return null;
         }
-
-        public async Task<Guid?> UpdateProductAsync(Guid? productId, ProductDto productDto)
-        {
-            using (IDbContextTransaction tx = context.Database.BeginTransaction())
-            {
-                Product? product = await context.Products.FirstOrDefaultAsync(p => p.Id == productId);
-
-                if (product != null)
-                {
-                    context.Products.Remove(product);
-
-                    product = mapper.Map<Product>(productDto);
-                    context.Products.Add(product);
-                    await context.SaveChangesAsync();
-                    ProductStorage? productStorage = context.ProductStorages.FirstOrDefault(ps => ps.ProductId == product.Id);
-                    if (productStorage != null)
-                    {
-                        context.ProductStorages.Remove(productStorage);
-                        productStorage = mapper.Map<ProductStorage>(productDto);
-                        //productStorage.Count = productDto.Count;
-                        //productStorage.Name = productDto.Name;
-                        //productStorage.Description = productDto.Description;
-                        context.ProductStorages.Add(productStorage);
-                        await context.SaveChangesAsync();
-                    }
-
-                    tx.Commit();
-                    return product.Id;
-                }
-                return null;
-            }
-        }
     }
+}
 }
