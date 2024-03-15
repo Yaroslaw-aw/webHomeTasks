@@ -5,6 +5,10 @@ namespace Market.Repositories.CategotyRepo
 {
     public interface ICategoryRepository
     {
-        Task<Category?> AddCategotyAsync(CategoryDto categoryDto);
+        Task<IEnumerable<CategoryDto>> GetCategoriesAsync();
+        Task<Category?> AddCategoryAsync(CategoryDto categoryDto);
+        //Task<Category?> UpdateCategotyAsync();
+        Task<Category?> DeleteCategoryAsync(Guid? id);
+
     }
 }

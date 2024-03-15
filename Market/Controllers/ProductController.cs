@@ -16,18 +16,32 @@ namespace Market.Controllers
             this.repository = repository;
         }
 
-        [HttpGet(template: "GetProduct")]
+        [HttpGet(template: "GetProducts")]
         public async Task<ActionResult<IEnumerable<ProductDto>?>> GetProducts()
         {
             IEnumerable<ProductDto>? products = await repository.GetProductsAsync();
-            return AcceptedAtAction("GetProduct", products);
+            return AcceptedAtAction("GetProducts", products);
         }
 
         [HttpPost(template: "AddProduct")]
-        public async Task<ActionResult<Guid?>> AddProduct([FromQuery] ProductDto productDto)
+        public async Task<ActionResult<Product?>> AddProduct([FromQuery] ProductDto productDto)
         {
             Product? newProductId = await repository.AddProductAsync(productDto);
-            return CreatedAtAction("AddProduct", newProductId?.Id);
+            return CreatedAtAction("AddProduct", newProductId);
+        }
+
+        //[HttpPut(template: "UpdateProduct")]
+        //public async Task<ActionResult<Guid?>> UpdateProduct(ProductDto productDto)
+        //{
+        //    Product? newProductId = await repository.UpdateProductAsync(productDto);
+        //    return AcceptedAtAction("UpdateProduct", newProductId?.Id);
+        //}
+
+        [HttpDelete(template: "DeleteProduct")]
+        public async Task<ActionResult<Guid?>> DeleteProduct(Guid? productId)
+        {
+            Product? deletetProduct = await repository.DeleteProductAsync(productId);
+            return AcceptedAtAction(nameof(DeleteProduct), deletetProduct?.Id);
         }
 
         //[HttpPost(template: "AddProduct")]

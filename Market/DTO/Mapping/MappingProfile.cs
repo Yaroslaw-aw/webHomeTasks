@@ -1,11 +1,11 @@
 ﻿using AutoMapper;
 using Market.Models;
 
-namespace Market.DTO
+namespace Market.DTO.Mapping
 {
     public class MappingProfile : Profile
     {
-        public MappingProfile() 
+        public MappingProfile()
         {
             CreateMap<ProductDto, Product>().ReverseMap();
             CreateMap<StorageDto, Storage>().ReverseMap();

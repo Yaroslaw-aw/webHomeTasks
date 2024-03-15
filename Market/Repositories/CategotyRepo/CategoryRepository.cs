@@ -16,22 +16,41 @@ namespace Market.Repositories.CategotyRepo
             this.mapper = mapper;
         }
 
-        public async Task<Category?> AddCategotyAsync(CategoryDto categoryDto)
+        public async Task<Category?> AddCategoryAsync(CategoryDto categoryDto)
         {
-            Guid? newCategoryId = null;
-            Category? newCategory = default;
-            using (context)
+            using (IDbContextTransaction transaction = context.Database.BeginTransaction())
             {
-                using (IDbContextTransaction transaction = context.Database.BeginTransaction())
+                Category newCategory = mapper.Map<Category>(categoryDto);
+                await context.AddAsync(newCategory);
+                context.SaveChanges();
+                transaction.Commit();
+                return newCategory;
+            }
+        }
+
+        public async Task<IEnumerable<CategoryDto>> GetCategoriesAsync()
+        {
+            await context.SaveChangesAsync();
+            using (context)
+                return context.Categories.Select(mapper.Map<CategoryDto>).ToList();
+        }
+
+        public async Task<Category?> DeleteCategoryAsync(Guid? id)
+        {
+            using (IDbContextTransaction transaction = context.Database.BeginTransaction())
+            {
+                Category? deletedCategory = context.Categories.FirstOrDefault(c => c.Id == id);
+                if (deletedCategory != null)
                 {
-                    newCategory = mapper.Map<Category>(categoryDto);
-                    newCategoryId = newCategory.Id;
-                    context.Add(newCategory);
-                    context.SaveChanges();
+                    context.Categories.Remove(deletedCategory);
+                    await context.SaveChangesAsync();
                     transaction.Commit();
+                    return deletedCategory;
                 }
             }
-            return newCategory;
+            return null;
         }
+
+
     }
 }

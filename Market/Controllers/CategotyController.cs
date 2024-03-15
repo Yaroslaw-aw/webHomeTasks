@@ -16,13 +16,27 @@ namespace Market.Controllers
             this.repository = repository;
         }
 
-        [HttpPost(template: "AddCategory")]
-        public async Task<ActionResult<Category?>> AddCategory(CategoryDto categoryDto)
+        [HttpGet(template: "GetCategorys")]
+        public async Task<ActionResult<IEnumerable<CategoryDto>?>> GetCategorys()
         {
-            Category? newCategory = await repository.AddCategotyAsync(categoryDto);
+            IEnumerable<CategoryDto>? Categorys = await repository.GetCategoriesAsync();
+            return AcceptedAtAction("GetCategorys", Categorys);
+        }
+
+        [HttpPost(template: "AddCategory")]
+        public async Task<ActionResult<Guid?>> AddCategory([FromQuery] CategoryDto CategoryDto)
+        {
+            Category? newCategory = await repository.AddCategoryAsync(CategoryDto);
             return CreatedAtAction("AddCategory", newCategory?.Id);
         }
 
-        
+
+        [HttpDelete(template: "DeleteCategory")]
+        public async Task<ActionResult<Guid?>> DeleteCategory(Guid? CategoryId)
+        {
+            Category? deletetCategory = await repository.DeleteCategoryAsync(CategoryId);
+            return AcceptedAtAction(nameof(DeleteCategory), deletetCategory?.Id);
+        }
     }
 }
+        //new { id = newCategory?.Id, name = newCategory?.Name, description = newCategory?.Description }

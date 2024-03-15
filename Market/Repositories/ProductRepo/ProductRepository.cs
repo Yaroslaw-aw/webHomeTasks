@@ -15,14 +15,7 @@ namespace Market.Repositories.ProductRepo
         {
             this.context = context;
             this.mapper = mapper;
-        }        
-
-        // List<ProductDto> products = context.Products.Select(product => new Product()
-        // {
-        //      Id = product.Id,
-        //      Name = product.Name,
-        //      Description = product.Description
-        // }).ToList(); // это комментарий для себя
+        }
 
         /// <summary>
         /// Получение списка продуктов из базы данных
@@ -30,6 +23,7 @@ namespace Market.Repositories.ProductRepo
         /// <returns></returns>
         public async Task<IEnumerable<ProductDto>> GetProductsAsync()
         {
+            await context.SaveChangesAsync();
             using (context)
             {
                 return context.Products.Select(mapper.Map<ProductDto>).ToList();
@@ -38,41 +32,30 @@ namespace Market.Repositories.ProductRepo
 
         public async Task<Product?> AddProductAsync([FromQuery] ProductDto productDto)
         {
-            //ProductDto productDto = mapper.Map<Product>(productDto) };
-            // ProductDto productDto
-            Guid? newProductId = default;
-            Product? newProduct = default;
-            using (context)
+            using (IDbContextTransaction transaction = context.Database.BeginTransaction())
             {
-                using (IDbContextTransaction transaction = context.Database.BeginTransaction())
-                {
-                    newProduct = mapper.Map<Product>(productDto);
-                    newProductId = newProduct.Id;
-                    context.Set<Product>().Add(newProduct);
-                    context.SaveChanges();
-                    transaction.Commit();
-                }
+                Product? newProduct = mapper.Map<Product>(productDto);
+                await context.Set<Product>().AddAsync(newProduct);
+                context.SaveChanges();
+                transaction.Commit();
+                return newProduct;
             }
-            return newProduct;
         }
 
-        //public async Task<Guid?> AddProductAsync([FromQuery] string? name, string? description, decimal? price, CategoryDto categoryDto)
-        //{
-        //    ProductDto productDto = new ProductDto() { Name = name, Description = description, Price = price, Category = mapper.Map<Category>(categoryDto) };
-        //    // ProductDto productDto
-        //    Guid? newProductId = null;
-        //    using (context)
-        //    {
-        //        using (IDbContextTransaction transaction = context.Database.BeginTransaction())
-        //        {
-        //            Product product = mapper.Map<Product>(productDto);
-        //            newProductId = product.Id;
-        //            context.Set<Product>().Add(product);
-        //            context.SaveChanges();
-        //            transaction.Commit();
-        //        }
-        //    }
-        //    return newProductId;
-        //}
+        public async Task<Product?> DeleteProductAsync(Guid? id)
+        {
+            using (IDbContextTransaction transaction = context.Database.BeginTransaction())
+            {
+                Product? deletedProduct = context.Products.FirstOrDefault(p => p.Id == id);
+                if (deletedProduct != null)
+                {
+                    context.Products.Remove(deletedProduct);
+                    await context.SaveChangesAsync();
+                    transaction.Commit();
+                    return deletedProduct;
+                }                
+            }
+            return null;
+        }
     }
 }
