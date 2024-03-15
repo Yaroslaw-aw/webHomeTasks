@@ -7,11 +7,11 @@ namespace Market.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class CategotyController : Controller
+    public class CategoryController : Controller
     {
         private ICategoryRepository repository;
 
-        public CategotyController(ICategoryRepository repository)
+        public CategoryController(ICategoryRepository repository)
         {
             this.repository = repository;
         }
