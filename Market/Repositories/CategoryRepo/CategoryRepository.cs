@@ -27,11 +27,15 @@ namespace Market.Repositories.CategoryRepo
             using (IDbContextTransaction transaction = context.Database.BeginTransaction())
             {
                 Category newCategory = mapper.Map<Category>(categoryDto);
-                await context.AddAsync(newCategory);
-                await context.SaveChangesAsync();
-                await transaction.CommitAsync();
-                return newCategory.Id;
+                if (newCategory.Name != null || newCategory != null)
+                {
+                    await context.AddAsync(newCategory);
+                    await context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                    return newCategory.Id;
+                }
             }
+            return null;
         }
 
         /// <summary>

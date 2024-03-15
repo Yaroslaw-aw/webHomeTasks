@@ -51,6 +51,11 @@ namespace Market.Controllers
             return AcceptedAtAction(nameof(DeleteCategory), deletedCategoryId);
         }
 
-        
+        [HttpPut(template: "UpdateCategory")]
+        public async Task<ActionResult<Guid>> UpdateCategory([FromQuery] Guid categoryId, CategoryDto categoryDto)
+        {
+            Guid? productid = await repository.UpdateCategotyAsync(categoryId, categoryDto);
+            return AcceptedAtAction(nameof(UpdateCategory), productid);
+        }
     }
 }

@@ -8,6 +8,6 @@ namespace Market.Repositories.StorageRepo
         Task<IEnumerable<StorageDto>> GetStoragesAsync();
         Task<Guid?> AddStorageAsync(StorageDto StorageDto);
         Task<Storage?> DeleteStorageAsync(Guid? StorageId);
-        Task<Guid> UpdateStorageAsync(Guid storageId, StorageDto StorageDto);
+        Task<Guid?> UpdateStorageAsync(Guid storageId, StorageDto StorageDto);
     }
 }

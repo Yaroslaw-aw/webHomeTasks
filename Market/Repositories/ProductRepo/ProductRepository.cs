@@ -44,40 +44,32 @@ namespace Market.Repositories.ProductRepo
                     context.Products.Add(newProduct);
                     await context.SaveChangesAsync();
 
-                    var storageProduct = await context.ProductStorages.FirstOrDefaultAsync(sp => sp.ProductId == newProduct.Id);
+                    ProductStorage? storageProduct = await context.ProductStorages.FirstOrDefaultAsync(sp => sp.ProductId == newProduct.Id);
 
                     if (storageProduct != null)
                     {
                         storageProduct.Count += newProduct.Count;
-                        storageProduct.ProductId = newProduct.Id;
-                        storageProduct.CategoryId = newProduct.CategoryId;
                     }
                     else
                     {
-                        storageProduct = new ProductStorage
-                        {
-                            ProductId = newProduct.Id,
-                            Count = newProduct.Count,
-                            CategoryId = newProduct.CategoryId,
-                            
-                        };
-                        context.ProductStorages.Add(storageProduct);
+                        storageProduct = mapper.Map<ProductStorage>(newProduct);
+                        context.ProductStorages.Add(storageProduct);                        
                     }
+                    await context.SaveChangesAsync();
 
-                    var categoryProduct = new CategoryProduct
+                    CategoryProduct? categoryProduct = new CategoryProduct
                     {
                         CategoryId = newProduct.CategoryId,
                         ProductId = newProduct.Id
                     };
                     context.CategoryProducts.Add(categoryProduct);
 
-
                     await context.SaveChangesAsync();
                     await transaction.CommitAsync();
                     return newProduct.Id;
                 }
                 catch
-                { 
+                {
                     await transaction.RollbackAsync(); throw;
                 }
             }
@@ -115,14 +107,22 @@ namespace Market.Repositories.ProductRepo
                     context.Products.Remove(product);
 
                     product = mapper.Map<Product>(productDto);
-                    //product.Price = productDto.Price;
-                    //product.Description = productDto.Description;
-                    //product.StorageId = productDto.StorageId;
-                    //product.CategoryId = productDto.CategoryId;
                     context.Products.Add(product);
                     await context.SaveChangesAsync();
+                    ProductStorage? productStorage = context.ProductStorages.FirstOrDefault(ps => ps.ProductId == product.Id);
+                    if (productStorage != null)
+                    {
+                        context.ProductStorages.Remove(productStorage);
+                        productStorage = mapper.Map<ProductStorage>(productDto);
+                        //productStorage.Count = productDto.Count;
+                        //productStorage.Name = productDto.Name;
+                        //productStorage.Description = productDto.Description;
+                        context.ProductStorages.Add(productStorage);
+                        await context.SaveChangesAsync();
+                    }
+
                     tx.Commit();
-                    return productId;
+                    return product.Id;
                 }
                 return null;
             }
