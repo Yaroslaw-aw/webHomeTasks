@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Market.DTO;
 using Market.Models;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -21,13 +20,38 @@ namespace Market.Repositories.ProductRepo
         /// <summary>
         /// Получение списка продуктов из базы данных
         /// </summary>
-        /// <returns></returns>
+        /// <returns></returns>        
         public async Task<IEnumerable<ProductDto>> GetProductsAsync()
         {
-            List<Product> products = await context.Set<Product>().AsNoTracking().ToListAsync();
-            IEnumerable<ProductDto> result = mapper.Map<IEnumerable<ProductDto>>(products);
-            return result;
+            List<ProductDto> products = new List<ProductDto>();
+
+            // Получаем все продукты и соответствующие хранилища асинхронно
+            List<Product> productsAndStorages = await context.Products
+                .Include(p => p.ProductStorages)
+                .ToListAsync();
+
+            // Перебираем полученные продукты и хранилища
+            foreach (var product in productsAndStorages)
+            {
+                // Считаем общее количество продукта во всех хранилищах
+                ulong totalCount = 0;
+                foreach (var storage in product.ProductStorages)
+                {
+                    totalCount += storage.Count ?? 0;
+                }
+
+                // Создаем DTO для продукта и добавляем его в список
+                ProductDto? productDto = new ProductDto
+                {
+                    Name = product.Name,
+                    Description = product.Description,
+                    Count = totalCount
+                };
+                products.Add(productDto);
+            }
+            return products;
         }
+
 
         /// <summary>
         /// Добавление продукта
@@ -42,14 +66,14 @@ namespace Market.Repositories.ProductRepo
             {
                 Product? existingProduct = await context.Products.FirstOrDefaultAsync(sp => sp.Name == productDto.Name &&
                                                                                             sp.Description == productDto.Description);
-                
+
                 using (IDbContextTransaction transaction = context.Database.BeginTransaction())
                 {
                     if (existingProduct != null)
                     {
                         storageProduct = await context.ProductStorages.FirstOrDefaultAsync(ps => ps.StorageId == productDto.StorageId);
 
-                        if(storageProduct != null && storageProduct.ProductId == existingProduct.Id && productDto.Price == storageProduct.Price)
+                        if (storageProduct != null && storageProduct.ProductId == existingProduct.Id && productDto.Price == storageProduct.Price)
                         {
                             storageProduct.Count += productDto.Count;
                         }
@@ -57,7 +81,7 @@ namespace Market.Repositories.ProductRepo
                         {
                             storageProduct = mapper.Map<ProductStorage>(productDto);
                             storageProduct.ProductId = existingProduct.Id;
-                            context.ProductStorages.Add(storageProduct);                            
+                            context.ProductStorages.Add(storageProduct);
                         }
                         await context.SaveChangesAsync();
                         newProductId = existingProduct.Id;
@@ -75,7 +99,7 @@ namespace Market.Repositories.ProductRepo
 
                         storageProduct = mapper.Map<ProductStorage>(productDto);
                         storageProduct.ProductId = newProduct.Id;
-                        context.ProductStorages.Add(storageProduct);                        
+                        context.ProductStorages.Add(storageProduct);
                     }
                     await context.SaveChangesAsync();
                     await transaction.CommitAsync();

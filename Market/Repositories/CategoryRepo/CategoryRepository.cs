@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Market.DTO;
+using Market.Exceptions;
 using Market.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -41,7 +42,8 @@ namespace Market.Repositories.CategoryRepo
                     }
                     else
                     {
-                        // выбросить какое-нибудь исключение, сообщающее о попытке добавить дубликат?
+                        // Выбрасываем специфичное исключение, сообщающее о дубликате категории
+                        throw new DuplicateCategoryException($"Category with name '{categoryDto.Name}' already exists.");
                     }
                 }
             }
@@ -68,23 +70,37 @@ namespace Market.Repositories.CategoryRepo
         /// <summary>
         /// Удаление категории
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="categoryId"></param>
         /// <returns></returns>
-        public async Task<Guid?> DeleteCategoryAsync(Guid? id)
+        public async Task<Guid?> DeleteCategoryAsync(Guid? categoryId)
         {
             using (IDbContextTransaction transaction = context.Database.BeginTransaction())
             {
-                Category? deletedCategory = context.Categories.FirstOrDefault(c => c.Id == id);
+                Category? deletedCategory = await context.Categories.FindAsync(categoryId);
                 if (deletedCategory != null)
                 {
+                    // Находим все продукты, связанные с этой категорией
+                    List<Product> productsWithCategory = await context.Products.Where(p => p.CategoryId == categoryId).ToListAsync();
+
+                    // Обновляем связанные продукты, устанавливая их категорию в null
+                    foreach (var product in productsWithCategory)
+                    {
+                        product.CategoryId = null;
+                    }
+
+                    // Удаляем категорию
                     context.Categories.Remove(deletedCategory);
                     await context.SaveChangesAsync();
                     await transaction.CommitAsync();
                     return deletedCategory.Id;
                 }
+                else
+                {
+                    throw new ArgumentException("Category not found.", nameof(categoryId));
+                }
             }
-            return null;
         }
+
 
         public async Task<Guid?> UpdateCategotyAsync(Guid categoryId, CategoryDto categoryDto)
         {
