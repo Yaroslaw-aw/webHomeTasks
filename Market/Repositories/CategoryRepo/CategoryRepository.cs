@@ -94,10 +94,7 @@ namespace Market.Repositories.CategoryRepo
 
                 if (category != null)
                 {
-                    context.Categories.Remove(category);
-
-                    category = mapper.Map<Category>(categoryDto);
-                    context.Categories.Add(category);
+                    mapper.Map(categoryDto, category);
                     await context.SaveChangesAsync();
                     tx.Commit();
                     return categoryId;

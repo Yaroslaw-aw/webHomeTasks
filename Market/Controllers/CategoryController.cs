@@ -33,10 +33,14 @@ namespace Market.Controllers
         /// <param name="CategoryDto"></param>
         /// <returns></returns>
         [HttpPost(template: "AddCategory")]
-        public async Task<ActionResult<Guid?>> AddCategory([FromQuery] CategoryDto CategoryDto)
+        public async Task<ActionResult<Guid?>> AddCategory(CategoryDto CategoryDto)
         {
             Guid? newCategoryId = await repository.AddCategoryAsync(CategoryDto);
-            return CreatedAtAction("AddCategory", newCategoryId);
+
+            if (newCategoryId != null)
+                return CreatedAtAction("AddCategory", newCategoryId);
+            else
+                return StatusCode(409, "Try to add duplicate category");
         }
 
         /// <summary>

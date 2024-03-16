@@ -2,6 +2,7 @@
 using Market.Models;
 using Market.Repositories.StorageRepo;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Market.Controllers
 {
@@ -30,10 +31,14 @@ namespace Market.Controllers
         /// <param name="storageDto"></param>
         /// <returns></returns>
         [HttpPost(template: "AddStorage")]
-        public async Task<ActionResult<Guid?>> AddStorage( StorageDto storageDto)
+        public async Task<ActionResult<Guid?>> AddStorage(StorageDto storageDto)
         {
             Guid? newStorageId = await repository.AddStorageAsync(storageDto);
-            return CreatedAtAction("AddStorage", newStorageId);
+
+            if (newStorageId != null)
+                return CreatedAtAction("AddStorage", newStorageId);
+            else
+                return StatusCode(409, "Try to add duplicate");
         }
 
         /// <summary>
@@ -49,7 +54,7 @@ namespace Market.Controllers
         }
 
         [HttpPut(template: "UpdateStorage")]
-        public async Task<ActionResult<Guid?>> UpdateStorage([FromQuery] Guid storageId, StorageDto storageDto)
+        public async Task<ActionResult<Guid?>> UpdateStorage(Guid storageId, StorageDto storageDto)
         {
             Guid? storageid = await repository.UpdateStorageAsync(storageId, storageDto);
             return AcceptedAtAction(nameof(UpdateStorage), storageid);

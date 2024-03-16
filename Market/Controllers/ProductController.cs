@@ -33,7 +33,7 @@ namespace Market.Controllers
         /// <param name="productDto"></param>
         /// <returns></returns>
         [HttpPost(template: "AddProduct")]
-        public async Task<ActionResult<Product?>> AddProduct([FromQuery] ProductDto productDto)
+        public async Task<ActionResult<Product?>> AddProduct(ProductDto productDto)
         {
             Guid? newProductId = await repository.AddProductAsync(productDto);
             return CreatedAtAction("AddProduct", newProductId);

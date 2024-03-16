@@ -35,16 +35,21 @@ namespace Market.Repositories.StorageRepo
         /// </summary>
         /// <param name="StorageDto"></param>
         /// <returns></returns>
-        public async Task<Guid?> AddStorageAsync([FromQuery] StorageDto StorageDto)
+        public async Task<Guid?> AddStorageAsync(StorageDto StorageDto)
         {
+            Storage? storage = await context.Storages.FirstOrDefaultAsync(s => s.Name == StorageDto.Name);
             using (IDbContextTransaction transaction = context.Database.BeginTransaction())
             {
-                Storage? newStorage = mapper.Map<Storage>(StorageDto);
-                await context.Set<Storage>().AddAsync(newStorage);
-                await context.SaveChangesAsync();
-                await transaction.CommitAsync();
-                return newStorage.Id;
+                if (storage == null)
+                {
+                    Storage? newStorage = mapper.Map<Storage>(StorageDto);
+                    await context.Set<Storage>().AddAsync(newStorage);
+                    await context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                    return newStorage.Id;
+                }
             }
+            return null;
         }
 
         /// <summary>

@@ -34,7 +34,7 @@ namespace Market.Repositories.ProductRepo
         /// </summary>
         /// <param name="productDto"></param>
         /// <returns></returns>
-        public async Task<Guid?> AddProductAsync([FromQuery] ProductDto productDto)
+        public async Task<Guid?> AddProductAsync(ProductDto productDto)
         {
             Guid? newProductId = null;
             ProductStorage? storageProduct = null;
@@ -96,54 +96,78 @@ namespace Market.Repositories.ProductRepo
         /// <summary>
         /// Удаление продукта
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="productId"></param>
         /// <returns></returns>
-        public async Task<Product?> DeleteProductAsync(Guid? id)
+        public async Task<Product?> DeleteProductAsync(Guid? productId)
         {
             using (IDbContextTransaction transaction = context.Database.BeginTransaction())
             {
-                Product? deletedProduct = context.Products.FirstOrDefault(p => p.Id == id);
+                Product? deletedProduct = await context.Products
+                    .Include(p => p.ProductStorages)
+                    .Include(p => p.CategoryProducts)
+                    .FirstOrDefaultAsync(p => p.Id == productId);
+
                 if (deletedProduct != null)
                 {
+                    // Удаляем связанные записи из таблицы CategoryProducts
+                    context.CategoryProducts.RemoveRange(deletedProduct.CategoryProducts);
+                    await context.SaveChangesAsync();
+
+                    // Получаем связанные записи из таблицы ProductStorages
+                    var relatedProductStorages = deletedProduct.ProductStorages.ToList();
+
+                    // Удаляем связанные записи из таблицы ProductStorages
+                    foreach (var productStorage in relatedProductStorages)
+                    {
+                        context.ProductStorages.Remove(productStorage);
+                    }
+                    await context.SaveChangesAsync();
+
+                    // Удаляем сам продукт
                     context.Products.Remove(deletedProduct);
                     await context.SaveChangesAsync();
+
+                    // Фиксируем транзакцию
                     await transaction.CommitAsync();
+
                     return deletedProduct;
                 }
+
+                return null;
             }
-            return null;
         }
 
         public async Task<Guid?> UpdateProductAsync(Guid? productId, ProductDto productDto)
         {
-            using (IDbContextTransaction tx = context.Database.BeginTransaction())
+            using (IDbContextTransaction transaction = context.Database.BeginTransaction())
             {
-                Product? product = await context.Products.FirstOrDefaultAsync(p => p.Id == productId);
+                Product? deletedProduct = await context.Products.FirstOrDefaultAsync(p => p.Id == productId);
 
-                if (product != null)
+                if (deletedProduct != null)
                 {
-                    context.Products.Remove(product);
+                    // Поиск объекта хранения продукта
+                    ProductStorage? productStorage = await context.ProductStorages.FirstOrDefaultAsync(ps => ps.ProductId == deletedProduct.Id);
 
-                    product = mapper.Map<Product>(productDto);
-                    context.Products.Add(product);
-                    await context.SaveChangesAsync();
-                    ProductStorage? productStorage = context.ProductStorages.FirstOrDefault(ps => ps.ProductId == product.Id);
                     if (productStorage != null)
                     {
+                        // Удаление объекта хранения продукта
                         context.ProductStorages.Remove(productStorage);
-                        productStorage = mapper.Map<ProductStorage>(productDto);
-                        //productStorage.Count = productDto.Count;
-                        //productStorage.Name = productDto.Name;
-                        //productStorage.Description = productDto.Description;
-                        context.ProductStorages.Add(productStorage);
-                        await context.SaveChangesAsync();
                     }
 
-                    tx.Commit();
-                    return product.Id;
+                    // Удаление продукта
+                    context.Products.Remove(deletedProduct);
+
+                    // Сохранение изменений
+                    await context.SaveChangesAsync();
+
+                    // Фиксация транзакции
+                    await transaction.CommitAsync();
+
+                    return deletedProduct.Id;
                 }
-                return null;
             }
+
+            return null;
         }
     }
 }
