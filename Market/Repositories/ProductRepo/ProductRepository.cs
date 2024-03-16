@@ -49,7 +49,7 @@ namespace Market.Repositories.ProductRepo
                     {
                         storageProduct = await context.ProductStorages.FirstOrDefaultAsync(ps => ps.StorageId == productDto.StorageId);
 
-                        if(storageProduct != null && storageProduct.ProductId == existingProduct.Id)
+                        if(storageProduct != null && storageProduct.ProductId == existingProduct.Id && productDto.Price == storageProduct.Price)
                         {
                             storageProduct.Count += productDto.Count;
                         }
@@ -61,13 +61,12 @@ namespace Market.Repositories.ProductRepo
                         }
                         await context.SaveChangesAsync();
                         newProductId = existingProduct.Id;
-
                     }
                     else
                     {
                         Product? newProduct = mapper.Map<Product>(productDto);
                         context.Products.Add(newProduct);
-                        context.SaveChanges();
+                        await context.SaveChangesAsync();
                         newProductId = newProduct.Id;
 
                         CategoryProduct? categoryProduct = mapper.Map<CategoryProduct>(newProduct);
