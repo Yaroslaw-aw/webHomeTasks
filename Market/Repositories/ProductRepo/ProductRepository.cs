@@ -132,7 +132,6 @@ namespace Market.Repositories.ProductRepo
 
                     return deletedProduct;
                 }
-
                 return null;
             }
         }
