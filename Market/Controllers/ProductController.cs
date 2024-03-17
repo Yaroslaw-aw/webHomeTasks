@@ -59,6 +59,11 @@ namespace Market.Controllers
             return AcceptedAtAction(nameof(DeleteProduct), deletetProduct?.Id);
         }
 
+        /// <summary>
+        /// Изменение продукта
+        /// </summary>
+        /// <param name="updateProductDto"></param>
+        /// <returns></returns>
         [HttpPut(template: "UpdateProduct")]
         public async Task<ActionResult<Guid>> UpdateProduct(UpdateProductDto updateProductDto)
         {
