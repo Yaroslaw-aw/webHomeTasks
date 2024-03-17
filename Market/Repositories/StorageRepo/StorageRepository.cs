@@ -4,18 +4,21 @@ using Market.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Market.Repositories.StorageRepo
 {
     public class StorageRepository : IStorageRepository
     {
-        private MarketContext context;
-        private IMapper mapper;
+        private readonly MarketContext context;
+        private readonly IMapper mapper;
+        private readonly IMemoryCache cache;
 
-        public StorageRepository(IMapper mapper, MarketContext context)
+        public StorageRepository(IMapper mapper, MarketContext context, IMemoryCache cache)
         {
             this.context = context;
             this.mapper = mapper;
+            this.cache = cache;
         }
 
         /// <summary>
@@ -24,8 +27,14 @@ namespace Market.Repositories.StorageRepo
         /// <returns></returns>
         public async Task<IEnumerable<StorageDto>> GetStoragesAsync()
         {
+            if (cache.TryGetValue("storages", out List<StorageDto>? storagesList) && storagesList != null) return storagesList;
+
             List<Storage> storages = await context.Set<Storage>().AsNoTracking().ToListAsync();
+
             IEnumerable<StorageDto> result = mapper.Map<IEnumerable<StorageDto>>(storages);
+
+            cache.Set("storages", storages, TimeSpan.FromMinutes(30));
+
             return result;
         }
 
@@ -45,7 +54,8 @@ namespace Market.Repositories.StorageRepo
                     await context.Set<Storage>().AddAsync(newStorage);
                     await context.SaveChangesAsync();
                     await transaction.CommitAsync();
-                    return newStorage.Id;
+                    cache.Remove("storages");
+                    return newStorage.Id;                    
                 }
             }
             return null;

@@ -31,7 +31,7 @@ namespace Market.Controllers
         /// <param name="storageDto"></param>
         /// <returns></returns>
         [HttpPost(template: "AddStorage")]
-        public async Task<ActionResult<Guid?>> AddStorage(StorageDto storageDto)
+        public async Task<ActionResult<Guid?>> AddStorage([FromBody] StorageDto storageDto)
         {
             Guid? newStorageId = await repository.AddStorageAsync(storageDto);
 
@@ -47,14 +47,14 @@ namespace Market.Controllers
         /// <param name="storageId"></param>
         /// <returns></returns>
         [HttpDelete(template: "DeleteStorage")]
-        public async Task<ActionResult<Guid?>> DeleteStorage(Guid? storageId)
+        public async Task<ActionResult<Guid?>> DeleteStorage([FromBody] Guid? storageId)
         {
             Storage? deletetStorage = await repository.DeleteStorageAsync(storageId);
             return AcceptedAtAction(nameof(DeleteStorage), deletetStorage?.Id);
         }
 
         [HttpPut(template: "UpdateStorage")]
-        public async Task<ActionResult<Guid?>> UpdateStorage(Guid storageId, StorageDto storageDto)
+        public async Task<ActionResult<Guid?>> UpdateStorage(Guid storageId,StorageDto storageDto)
         {
             Guid? storageid = await repository.UpdateStorageAsync(storageId, storageDto);
             return AcceptedAtAction(nameof(UpdateStorage), storageid);

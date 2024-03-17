@@ -33,7 +33,7 @@ namespace Market.Controllers
         /// <param name="CategoryDto"></param>
         /// <returns></returns>
         [HttpPost(template: "AddCategory")]
-        public async Task<ActionResult<Guid?>> AddCategory(CategoryDto CategoryDto)
+        public async Task<ActionResult<Guid?>> AddCategory([FromBody] CategoryDto CategoryDto)
         {
             Guid? newCategoryId = await repository.AddCategoryAsync(CategoryDto);
 
@@ -49,14 +49,14 @@ namespace Market.Controllers
         /// <param name="CategoryId"></param>
         /// <returns></returns>
         [HttpDelete(template: "DeleteCategory")]
-        public async Task<ActionResult<Guid?>> DeleteCategory(Guid? CategoryId)
+        public async Task<ActionResult<Guid?>> DeleteCategory([FromBody] Guid? CategoryId)
         {
             Guid? deletedCategoryId = await repository.DeleteCategoryAsync(CategoryId);
             return AcceptedAtAction(nameof(DeleteCategory), deletedCategoryId);
         }
 
         [HttpPut(template: "UpdateCategory")]
-        public async Task<ActionResult<Guid>> UpdateCategory([FromQuery] Guid categoryId, CategoryDto categoryDto)
+        public async Task<ActionResult<Guid>> UpdateCategory(Guid categoryId, CategoryDto categoryDto)
         {
             Guid? productid = await repository.UpdateCategotyAsync(categoryId, categoryDto);
             return AcceptedAtAction(nameof(UpdateCategory), productid);

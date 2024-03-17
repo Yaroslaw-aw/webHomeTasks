@@ -8,6 +8,6 @@ namespace Market.Repositories.ProductRepo
         Task<IEnumerable<ProductDto>> GetProductsAsync();
         Task<Guid?> AddProductAsync(ProductDto productDto);
         Task<Product?> DeleteProductAsync(Guid? productId);
-        Task<Guid?> UpdateProductAsync(Guid? productId, ProductDto productDto);
+        Task<Guid?> UpdateProductAsync(UpdateProductDto updateProductDto);
     }
 }

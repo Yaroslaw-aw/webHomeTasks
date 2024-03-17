@@ -25,6 +25,20 @@ namespace Market.DTO.Mapping
                 .ForMember(dest => dest.CategoryId, opts => opts.MapFrom(y => y.CategoryId))
                 .ForMember(dest => dest.ProductId, opts => opts.MapFrom(y => y.Id))
                 .ReverseMap();
+
+            CreateMap<UpdateProductDto, Product>()
+                .ForMember(dest => dest.Id, opts => opts.Ignore())
+                .ForMember(dest => dest.Name, opts => opts.MapFrom(y => y.Name))
+                .ForMember(dest => dest.Description, opts => opts.MapFrom(y => y.Description))
+                .ForMember(dest => dest.CategoryId, opts => opts.MapFrom(y => y.CategoryId))
+                .ReverseMap();
+
+            CreateMap<UpdateProductDto, ProductStorage>()
+                .ForMember(dest => dest.Id, opts => opts.Ignore())
+                .ForMember(dest => dest.Name, opts => opts.MapFrom(y => y.Name))
+                .ForMember(dest => dest.Description, opts => opts.MapFrom(y => y.Description))
+                .ForMember(dest => dest.CategoryId, opts => opts.MapFrom(y => y.CategoryId))
+                .ReverseMap();
         }
     }
 }

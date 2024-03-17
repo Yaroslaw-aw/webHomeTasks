@@ -1,20 +1,26 @@
 ﻿using AutoMapper;
 using Market.DTO;
+using Market.DTO.Caching;
 using Market.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Market.Repositories.ProductRepo
 {
     public class ProductRepository : IProductRepository
     {
-        private MarketContext context;
-        private IMapper mapper;
+        private readonly MarketContext context;
+        private readonly IMapper mapper;
+        private readonly IMemoryCache cache;
+        
 
-        public ProductRepository(IMapper mapper, MarketContext context)
+        public ProductRepository(IMapper mapper, MarketContext context, IMemoryCache cache)
         {
             this.context = context;
             this.mapper = mapper;
+            this.cache = cache;            
         }
 
         /// <summary>
@@ -22,7 +28,9 @@ namespace Market.Repositories.ProductRepo
         /// </summary>
         /// <returns></returns>        
         public async Task<IEnumerable<ProductDto>> GetProductsAsync()
-        {
+        {            
+            if (cache.TryGetValue("products", out List<ProductDto>? productsList) && productsList != null) return productsList;
+
             List<ProductDto> products = new List<ProductDto>();
 
             // Получаем все продукты и соответствующие хранилища асинхронно
@@ -49,6 +57,7 @@ namespace Market.Repositories.ProductRepo
                 };
                 products.Add(productDto);
             }
+            cache.Set("products", products, TimeSpan.FromMinutes(30));            
             return products;
         }
 
@@ -100,9 +109,11 @@ namespace Market.Repositories.ProductRepo
                         storageProduct = mapper.Map<ProductStorage>(productDto);
                         storageProduct.ProductId = newProduct.Id;
                         context.ProductStorages.Add(storageProduct);
+                        await context.SaveChangesAsync();
                     }
-                    await context.SaveChangesAsync();
+
                     await transaction.CommitAsync();
+                    cache.Remove("products");                    
                 }
             }
             catch (DbUpdateException ex)
@@ -138,7 +149,7 @@ namespace Market.Repositories.ProductRepo
                     await context.SaveChangesAsync();
 
                     // Получаем связанные записи из таблицы ProductStorages
-                    var relatedProductStorages = deletedProduct.ProductStorages.ToList();
+                    List<ProductStorage> relatedProductStorages = deletedProduct.ProductStorages.ToList();
 
                     // Удаляем связанные записи из таблицы ProductStorages
                     foreach (var productStorage in relatedProductStorages)
@@ -160,25 +171,31 @@ namespace Market.Repositories.ProductRepo
             }
         }
 
-        public async Task<Guid?> UpdateProductAsync(Guid? productId, ProductDto productDto)
+        public async Task<Guid?> UpdateProductAsync(UpdateProductDto updateProductDto)
         {
             using (IDbContextTransaction transaction = context.Database.BeginTransaction())
             {
-                Product? deletedProduct = await context.Products.FirstOrDefaultAsync(p => p.Id == productId);
+                Product? updatedProduct = await context.Products
+                    .Include(p => p.ProductStorages)
+                    .FirstOrDefaultAsync(p => p.Id == updateProductDto.productId);
 
-                if (deletedProduct != null)
+                if (updatedProduct != null)
                 {
-                    // Поиск объекта хранения продукта
-                    ProductStorage? productStorage = await context.ProductStorages.FirstOrDefaultAsync(ps => ps.ProductId == deletedProduct.Id);
+                    // изменяем запись о продукте в таблице продуктов
+                    mapper.Map(updateProductDto, updatedProduct);
 
-                    if (productStorage != null)
+                    // получаем список складов, на которых находится этот продукт
+                    List<ProductStorage> updatedProductStorages = updatedProduct.ProductStorages.ToList();
+
+                    
+                    if (updatedProductStorages != null)
                     {
-                        // Удаление объекта хранения продукта
-                        context.ProductStorages.Remove(productStorage);
+                        // на каждом складе меняем наш продукт в соответствии с введенными изменениями
+                        foreach (ProductStorage? productStorage in updatedProductStorages)
+                        {
+                            mapper.Map(updateProductDto, productStorage);
+                        }
                     }
-
-                    // Удаление продукта
-                    context.Products.Remove(deletedProduct);
 
                     // Сохранение изменений
                     await context.SaveChangesAsync();
@@ -186,10 +203,9 @@ namespace Market.Repositories.ProductRepo
                     // Фиксация транзакции
                     await transaction.CommitAsync();
 
-                    return deletedProduct.Id;
+                    return updatedProduct.Id;
                 }
             }
-
             return null;
         }
     }
