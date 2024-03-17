@@ -97,19 +97,20 @@ namespace Market.Controllers
         public async Task<ActionResult<string>> GetProductsCsvUrl()
         {
             string? content = string.Empty;
-
+            // пробуем достать список продуктов из редиса
             if (redis.TryGetValue("products", out IEnumerable<ProductDto>? products)) content = GetCsv(products);
             else
-            {
+            {   // достаём продукты из репозитория
                 products = await repository.GetProductsAsync();
-                redis.SetData("products", products);
-                
+                redis.SetData("products", products); // кэшируем в редис
+                // формируем строку для CSV-файла
                 content = GetCsv(products);
             }
-
+            // генерируем название файла
             string? fileName = "products" + DateTime.Now.ToBinary().ToString() + ".csv";
-
+            // записываем в папку StaticFiles CSV-файл, который формируем из подготовленной строки
             System.IO.File.WriteAllText(Path.Combine(Directory.GetCurrentDirectory(), "StaticFiles", fileName), content);
+            // возвращаем строку для скачивани файла, в которой добавлен пусть static, прописанный в файле Program.cs
             return "https://" + Request.Host.ToString() + "/static/" + fileName;
         }
     }

@@ -15,10 +15,8 @@ namespace Market
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+            
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddAutoMapper(typeof(MappingProfile));
@@ -49,10 +47,8 @@ namespace Market
 
         public static void Main(string[] args)
         {
-
-
-            var app = AppBuilding(args);                // builder.Build();
-
+            var app = AppBuilding(args);  
+            
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
