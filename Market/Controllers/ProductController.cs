@@ -66,7 +66,11 @@ namespace Market.Controllers
             return AcceptedAtAction(nameof(UpdateProduct), productid);
         }
 
-
+        /// <summary>
+        /// Формирование CSV-файла
+        /// </summary>
+        /// <param name="products"></param>
+        /// <returns></returns>
         private string GetCsv(IEnumerable<ProductDto>? products)
         {
             StringBuilder sb = new StringBuilder();
@@ -80,6 +84,10 @@ namespace Market.Controllers
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Возвращает ссылку для скачивания файла
+        /// </summary>
+        /// <returns></returns>
         [HttpGet(template: "GetProductsCsvUrl")]
         public async Task<ActionResult<string>> GetProductsCsvUrl()
         {

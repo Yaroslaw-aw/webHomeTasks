@@ -171,6 +171,11 @@ namespace Market.Repositories.ProductRepo
             }
         }
 
+        /// <summary>
+        /// Обновление продукта
+        /// </summary>
+        /// <param name="updateProductDto"></param>
+        /// <returns></returns>
         public async Task<Guid?> UpdateProductAsync(UpdateProductDto updateProductDto)
         {
             using (IDbContextTransaction transaction = context.Database.BeginTransaction())
