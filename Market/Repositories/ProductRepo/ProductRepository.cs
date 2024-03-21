@@ -2,6 +2,7 @@
 using Market.DTO;
 using Market.DTO.Caching;
 using Market.Models;
+using Market.Models.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Caching.Distributed;
@@ -27,40 +28,36 @@ namespace Market.Repositories.ProductRepo
         /// Получение списка продуктов из базы данных
         /// </summary>
         /// <returns></returns>        
-        public async Task<IEnumerable<ProductDto>> GetProductsAsync()
-        {            
-            if (cache.TryGetValue("products", out List<ProductDto>? productsList) && productsList != null) return productsList;
+        public async Task<IEnumerable<GetAllProductsDto>?> GetProductsAsync()
+        {
+            if (cache.TryGetValue("allproducts", out List<GetAllProductsDto>? productsList) && productsList != null) return productsList;
 
-            List<ProductDto> products = new List<ProductDto>();
+            List<ProductStorage> productStorages = await context.ProductStorages.AsNoTracking().ToListAsync();
 
-            // Получаем все продукты и соответствующие хранилища асинхронно
-            List<Product> productsAndStorages = await context.Products
-                .Include(p => p.ProductStorages)
-                .ToListAsync();
+            if (productStorages == null) return null;
 
-            // Перебираем полученные продукты и хранилища
-            foreach (var product in productsAndStorages)
-            {
-                // Считаем общее количество продукта во всех хранилищах
-                ulong totalCount = 0;
-                foreach (var storage in product.ProductStorages)
+            List<GetAllProductsDto> products = new List<GetAllProductsDto>(productStorages.Count);
+
+            // Перебираем полученные склады
+            foreach (var productStorage in productStorages)
+            {                
+                Storage? storage = await context.Storages.FirstOrDefaultAsync(s => s.Id == productStorage.StorageId);
+                string? storageName = storage?.Name;                
+
+                // Создаем DTO записи и добавляем в список
+                GetAllProductsDto? productDto = new GetAllProductsDto
                 {
-                    totalCount += storage.Count ?? 0;
-                }
-
-                // Создаем DTO для продукта и добавляем его в список
-                ProductDto? productDto = new ProductDto
-                {
-                    Name = product.Name,
-                    Description = product.Description,
-                    Count = totalCount
+                    Name = productStorage.Name,
+                    Description = productStorage.Description,
+                    Price = productStorage.Price,
+                    Count = productStorage.Count,
+                    StorageName = storageName,
                 };
                 products.Add(productDto);
             }
-            cache.Set("products", products, TimeSpan.FromMinutes(30));            
+            cache.Set("allproducts", products, TimeSpan.FromMinutes(30));
             return products;
-        }
-
+        }       
 
         /// <summary>
         /// Добавление продукта
@@ -73,8 +70,8 @@ namespace Market.Repositories.ProductRepo
             ProductStorage? storageProduct = null;
             try
             {
-                Product? existingProduct = await context.Products.FirstOrDefaultAsync(sp => sp.Name == productDto.Name &&
-                                                                                            sp.Description == productDto.Description);
+                Product? existingProduct = await context.Products.FirstOrDefaultAsync(ep => ep.Name == productDto.Name &&
+                                                                                            ep.Description == productDto.Description);
 
                 using (IDbContextTransaction transaction = context.Database.BeginTransaction())
                 {
@@ -99,12 +96,12 @@ namespace Market.Repositories.ProductRepo
                     {
                         Product? newProduct = mapper.Map<Product>(productDto);
                         context.Products.Add(newProduct);
-                        await context.SaveChangesAsync();
+                        //await context.SaveChangesAsync();
                         newProductId = newProduct.Id;
 
                         CategoryProduct? categoryProduct = mapper.Map<CategoryProduct>(newProduct);
+                        categoryProduct.CategoryId = productDto.CategoryId;
                         context.CategoryProducts.Add(categoryProduct);
-                        await context.SaveChangesAsync();
 
                         storageProduct = mapper.Map<ProductStorage>(productDto);
                         storageProduct.ProductId = newProduct.Id;
@@ -113,7 +110,7 @@ namespace Market.Repositories.ProductRepo
                     }
 
                     await transaction.CommitAsync();
-                    cache.Remove("products");                    
+                    cache.Remove("products");
                 }
             }
             catch (DbUpdateException ex)
@@ -212,6 +209,26 @@ namespace Market.Repositories.ProductRepo
                 }
             }
             return null;
+        }
+
+        public async Task<Guid?> AddCategoryAsync(AddCategoryToProductDto toProductDto)
+        {
+            using (context)
+            {
+                Product? product = await context.Products.FirstOrDefaultAsync(p => p.Id == toProductDto.productId);
+                if (product != null)
+                {
+                    CategoryProduct? newCategoryProduct = mapper.Map<CategoryProduct>(toProductDto);
+                    context.CategoryProducts.Add(newCategoryProduct);
+                }
+                await context.SaveChangesAsync();
+                return product?.Id;
+            }
+        }
+
+        public async Task<bool> ProductExistsAsync(Guid? productId)
+        {
+            return await context.Products.AnyAsync(product => product.Id == productId);
         }
     }
 }

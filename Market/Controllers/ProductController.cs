@@ -22,15 +22,16 @@ namespace Market.Controllers
         }
 
         /// <summary>
-        /// Получение списка продуктов
+        /// Получение всех продуктов
         /// </summary>
         /// <returns></returns>
         [HttpGet(template: "GetProducts")]
-        public async Task<ActionResult<IEnumerable<ProductDto>?>> GetProducts()
+        public async Task<ActionResult<IEnumerable<GetAllProductsDto>?>> GetProducts()
         {
-            if (redis.TryGetValue("products", out List<ProductDto>? productsRedis) && productsRedis != null) return productsRedis;
-            IEnumerable<ProductDto>? products = await repository.GetProductsAsync();
-            redis.SetData("products", products);
+            if (redis.TryGetValue("allproducts", out List<GetAllProductsDto>? productsRedis) && productsRedis != null) return productsRedis;
+            IEnumerable<GetAllProductsDto>? products = await repository.GetProductsAsync();
+            if (products == null) return NotFound();
+            redis.SetData("allproducts", products);
             return AcceptedAtAction("GetProducts", products);
         }
 
@@ -56,6 +57,7 @@ namespace Market.Controllers
         public async Task<ActionResult<Guid?>> DeleteProduct([FromBody] Guid? productId)
         {
             Product? deletetProduct = await repository.DeleteProductAsync(productId);
+            redis.cache.Remove("products");
             return AcceptedAtAction(nameof(DeleteProduct), deletetProduct?.Id);
         }
 
@@ -68,7 +70,14 @@ namespace Market.Controllers
         public async Task<ActionResult<Guid>> UpdateProduct(UpdateProductDto updateProductDto)
         {
             Guid? productid = await repository.UpdateProductAsync(updateProductDto);
+            redis.cache.Remove("products");
             return AcceptedAtAction(nameof(UpdateProduct), productid);
+        }
+
+        [HttpGet(template: "ExistsProduct")]
+        public async Task<ActionResult<bool>> ExistsProduct(Guid productId)
+        {
+            return AcceptedAtAction(nameof(ExistsProduct), await repository.ProductExistsAsync(productId));
         }
 
         /// <summary>
@@ -76,14 +85,14 @@ namespace Market.Controllers
         /// </summary>
         /// <param name="products"></param>
         /// <returns></returns>
-        private string GetCsv(IEnumerable<ProductDto>? products)
+        private string GetCsv(IEnumerable<GetAllProductsDto>? products)
         {
             StringBuilder sb = new StringBuilder();
 
             if (products != null)
                 foreach (var product in products)
                 {
-                    sb.AppendLine(product.Name + ";" + product.Description + ";" + product.Price + ";" + product.StorageId);
+                    sb.AppendLine(product.Name + ";" + product.Price + ";" + product.Count + ";" + product.Description + ";" + product.StorageName);
                 }
 
             return sb.ToString();
@@ -98,7 +107,7 @@ namespace Market.Controllers
         {
             string? content = string.Empty;
             // пробуем достать список продуктов из редиса
-            if (redis.TryGetValue("products", out IEnumerable<ProductDto>? products)) content = GetCsv(products);
+            if (redis.TryGetValue("allproducts", out IEnumerable<GetAllProductsDto>? products)) content = GetCsv(products);
             else
             {   // достаём продукты из репозитория
                 products = await repository.GetProductsAsync();
@@ -112,6 +121,14 @@ namespace Market.Controllers
             System.IO.File.WriteAllText(Path.Combine(Directory.GetCurrentDirectory(), "StaticFiles", fileName), content);
             // возвращаем строку для скачивани файла, в которой добавлен пусть static, прописанный в файле Program.cs
             return "https://" + Request.Host.ToString() + "/static/" + fileName;
+        }
+
+
+        [HttpPut(template: "AddCategory")]
+        public async Task<ActionResult<Guid?>> AddCategory(AddCategoryToProductDto toProductDto)
+        {
+            Guid? updatedProductId = await repository.AddCategoryAsync(toProductDto);
+            return AcceptedAtAction(nameof(AddCategory), updatedProductId);
         }
     }
 }

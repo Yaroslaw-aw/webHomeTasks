@@ -1,10 +1,10 @@
+using Autofac;
 using Market.DTO.Mapping;
-using Market.Models;
+using Market.Models.Context;
 using Market.Repositories.CategoryRepo;
 using Market.Repositories.ProductRepo;
 using Market.Repositories.StorageRepo;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.FileProviders;
 
 namespace Market
@@ -13,17 +13,30 @@ namespace Market
     {
         private static WebApplication AppBuilding(string[] args)
         {
-            var builder = WebApplication.CreateBuilder(args);
+            WebApplicationBuilder? builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddControllers();
+
+            
             
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddAutoMapper(typeof(MappingProfile));
 
+            ConfigurationBuilder? config = new ConfigurationBuilder();
+            config.AddJsonFile("appsettings.json");
+            IConfigurationRoot? cfg = config.Build();
+
+            //builder.Host.ConfigureContainer<ContainerBuilder>(containerBuilder =>
+            //{
+            //    containerBuilder.Register(c => new MarketContext(cfg.GetConnectionString("db"))).InstancePerDependency();
+            //});
+
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
             builder.Services.AddScoped<IStorageRepository, StorageRepository>();
             builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+
+            
 
             builder.Services.AddStackExchangeRedisCache(options =>
             {
@@ -33,14 +46,16 @@ namespace Market
                 options.Configuration = cnstring;
             });
 
-            string? connectionString = builder.Configuration.GetConnectionString("db");
-            builder.Services.AddDbContext<MarketContext>(options => options.UseNpgsql(connectionString));
-
-            builder.Services.AddMemoryCache(options => 
+            builder.Services.AddMemoryCache(options =>
             {
                 options.TrackStatistics = true;
                 options.TrackLinkedCacheEntries = true;
             });
+
+            string? connectionString = builder.Configuration.GetConnectionString("db");
+            builder.Services.AddDbContext<MarketContext>(options => options.UseNpgsql(connectionString));
+
+            
 
             return builder.Build();
         }

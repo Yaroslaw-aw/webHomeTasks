@@ -1,10 +1,4 @@
-﻿using AutoMapper;
-using Market.DTO;
-using Market.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Storage;
-
-namespace Market.Models
+﻿namespace Market.Models
 {
     public class CategoryProduct
     {

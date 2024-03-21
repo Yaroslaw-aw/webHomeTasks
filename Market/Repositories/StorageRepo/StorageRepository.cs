@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Market.DTO;
 using Market.Models;
+using Market.Models.Context;
 using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;

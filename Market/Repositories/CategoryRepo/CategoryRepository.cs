@@ -2,6 +2,7 @@
 using Market.DTO;
 using Market.Exceptions;
 using Market.Models;
+using Market.Models.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Caching.Memory;
@@ -28,27 +29,25 @@ namespace Market.Repositories.CategoryRepo
         /// <returns></returns>
         public async Task<Guid?> AddCategoryAsync(CategoryDto categoryDto)
         {
+            Category? existingCategory = await context.Categories.FirstOrDefaultAsync(c => c.Name == categoryDto.Name);
+
+            if (existingCategory != null)
+            {
+                return existingCategory.Id;
+            }
+
             Guid? newCategoryId = null;
             try
             {
                 using (IDbContextTransaction transaction = context.Database.BeginTransaction())
                 {
-                    Category? existingCategory = await context.Categories.FirstOrDefaultAsync(c => c.Name == categoryDto.Name);
-                    if (existingCategory == null)
-                    {
-                        Category newCategory = mapper.Map<Category>(categoryDto);
+                    Category newCategory = mapper.Map<Category>(categoryDto);
 
-                        await context.AddAsync(newCategory);
-                        await context.SaveChangesAsync();
-                        await transaction.CommitAsync();
-                        newCategoryId = newCategory.Id;
-                        cache.Remove("categories");
-                    }
-                    else
-                    {
-                        // Выбрасываем специфичное исключение, сообщающее о дубликате категории
-                        throw new DuplicateCategoryException($"Category {categoryDto.Name} already exists. {existingCategory.Id}");
-                    }
+                    await context.AddAsync(newCategory);
+                    await context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                    newCategoryId = newCategory.Id;
+                    cache.Remove("categories");
                 }
             }
             catch
@@ -90,12 +89,12 @@ namespace Market.Repositories.CategoryRepo
                 if (deletedCategory != null)
                 {
                     // Находим все продукты, связанные с этой категорией
-                    List<Product> productsWithCategory = await context.Products.Where(p => p.CategoryId == categoryId).ToListAsync();
+                    List<CategoryProduct> categoryProducts = await context.CategoryProducts.Where(cp => cp.CategoryId == categoryId).ToListAsync();
 
                     // Обновляем связанные продукты, устанавливая их категорию в null
-                    foreach (var product in productsWithCategory)
+                    foreach (CategoryProduct? cp in categoryProducts)
                     {
-                        product.CategoryId = null;
+                        context.CategoryProducts.Remove(cp);
                     }
 
                     // Удаляем категорию

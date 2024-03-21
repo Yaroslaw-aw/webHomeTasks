@@ -10,10 +10,14 @@ namespace Market.DTO.Mapping
             CreateMap<ProductDto, Product>().ReverseMap();
             CreateMap<StorageDto, Storage>().ReverseMap();
             CreateMap<CategoryDto, Category>().ReverseMap();
+            //CreateMap<ProductDto, CategoryProduct>()
+            //    .ForMember(dest => dest.ProductId, opts => opts.MapFrom(y => y.id))
+            //    .ReverseMap();
+
             CreateMap<Product, ProductStorage>()
                 .ForMember(dest => dest.Id, opts => opts.Ignore())
                 .ForMember(dest => dest.ProductId, opts => opts.MapFrom(y => y.Id))
-                .ForMember(dest => dest.CategoryId, opts => opts.MapFrom(y => y.CategoryId))
+                //.ForMember(dest => dest.CategoryId, opts => opts.MapFrom(y => y.CategoryId))
                 .ForMember(dest => dest.Description, opts => opts.MapFrom(y => y.Description))
                 .ForMember(dest => dest.Name, opts => opts.MapFrom(y => y.Name))
                 .ReverseMap();
@@ -21,8 +25,8 @@ namespace Market.DTO.Mapping
             CreateMap<ProductDto, ProductStorage>().ReverseMap();
 
             CreateMap<Product, CategoryProduct>()
-                .ForMember(dest => dest.Id, opts => opts.Ignore())
-                .ForMember(dest => dest.CategoryId, opts => opts.MapFrom(y => y.CategoryId))
+                //.ForMember(dest => dest.Id, opts => opts.Ignore())
+                //.ForMember(dest => dest.CategoryId, opts => opts.MapFrom(y => y.CategoryId))
                 .ForMember(dest => dest.ProductId, opts => opts.MapFrom(y => y.Id))
                 .ReverseMap();
 
@@ -30,15 +34,17 @@ namespace Market.DTO.Mapping
                 .ForMember(dest => dest.Id, opts => opts.Ignore())
                 .ForMember(dest => dest.Name, opts => opts.MapFrom(y => y.Name))
                 .ForMember(dest => dest.Description, opts => opts.MapFrom(y => y.Description))
-                .ForMember(dest => dest.CategoryId, opts => opts.MapFrom(y => y.CategoryId))
+                //.ForMember(dest => dest.CategoryId, opts => opts.MapFrom(y => y.CategoryId))
                 .ReverseMap();
 
             CreateMap<UpdateProductDto, ProductStorage>()
                 .ForMember(dest => dest.Id, opts => opts.Ignore())
                 .ForMember(dest => dest.Name, opts => opts.MapFrom(y => y.Name))
                 .ForMember(dest => dest.Description, opts => opts.MapFrom(y => y.Description))
-                .ForMember(dest => dest.CategoryId, opts => opts.MapFrom(y => y.CategoryId))
+                //.ForMember(dest => dest.CategoryId, opts => opts.MapFrom(y => y.CategoryId))
                 .ReverseMap();
+
+            CreateMap<AddCategoryToProductDto, CategoryProduct>().ReverseMap();
         }
     }
 }

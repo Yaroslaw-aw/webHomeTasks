@@ -1,0 +1,82 @@
+{
+  "Routes": [
+    {
+      "DownstreamPathTemplate": "/Client/{method}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7145
+        }
+      ],
+      "UpstreamPathTemplate": "/Client/{method}",
+      "UpstreamHttpMethod": [ "Get", "Post" ],
+      "SwaggerKey": "clients"
+    },
+    {
+      "DownstreamPathTemplate": "/Product/{method}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7177
+        }
+      ],
+      "UpstreamPathTemplate": "/Product/{method}",
+      "UpstreamHttpMethod": [ "Get", "Post" ],
+      "SwaggerKey": "products"
+    },
+    {
+      "DownstreamPathTemplate": "/ClientProducts/{method}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7260
+        }
+      ],
+      "UpstreamPathTemplate": "/ClientProducts/{method}",
+      "UpstreamHttpMethod": [ "Get", "Post" ],
+      "SwaggerKey": "clientProducts"
+    }
+  ],
+  "GlobalConfiguration": {
+    "BaseUrl": "https://localhost:6696"
+  },
+
+  "SwaggerEndPoints": [
+    {
+      "Key": "clients",
+      "TransformByOcelotConfig": false,
+      "Config": [
+        {
+          "Name": "Client API",
+          "Version": "v1",
+          "Url": "https://localhost:7145/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "products",
+      "TransformByOcelotConfig": false,
+      "Config": [
+        {
+          "Name": "Products API",
+          "Version": "v1",
+          "Url": "https://localhost:7177/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "clientProducts",
+      "TransformByOcelotConfig": false,
+      "Config": [
+        {
+          "Name": "ClientProducts API",
+          "Version": "v1",
+          "Url": "https://localhost:7260/swagger/v1/swagger.json"
+        }
+      ]
+    }
+  ]
+}
